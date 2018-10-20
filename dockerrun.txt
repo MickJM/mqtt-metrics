@@ -1,0 +1,53 @@
+set HOST=localhost
+set PORT=11884
+set USERID=mickm
+set PASSWORD=CartaCat97
+set TOPIC_RESOURCESTATS=IBM/IntegrationBus/+/ResourceStatistics/#
+
+set QMGR=TSTQPD01
+set CHANNEL=MQ.MONITOR.SVRCONN
+set PORT=1414
+set USERID=MQMon01
+set PASSWORD=Passw0rd
+set IIBBROKER=TSTIPD01
+set IIBSTATUSQUEUE=IIB.STATS
+
+mvn clean package
+
+docker build --tag mqtt:01 .
+
+. /opt/ibm/iib-10.0.0.7/server/bin/mqsiprofile
+. /opt/mqm/bin/setmqenv -s
+
+//IIB
+
+docker run -d --name=iibmq -e BASE_FOLDER=/etc/kafka/lib -v C:\temp\iib:/etc/kafka/lib -e MQ_QMGR_NAME=AOKQSC01 -e MQ_PORT=1419 -e IIB_BROKER_NAME=AOKISC01 -e IIB_EG_NAME=egKafka01 -e LICENSE=accept -p 12883:11883 -p 1419:1419 -p 4425:4414 iibmq:01
+
+
+docker run -d --net=host --name=iib -e BASE_FOLDER=/etc/kafka/lib -e MQ_QMGR_NAME=AOKQSC01 -e MQ_PORT=1419 -e IIB_BROKER_NAME=AOKISC01 -e IIB_EG_NAME=egKafka01 -e LICENSE=accept -P iibmq:01
+
+
+
+docker run -d --name=iibmq -e BASE_FOLDER=/etc/kafka/lib -v C:\temp\iib:/etc/kafka/lib -e MQ_QMGR_NAME=AOKQSC01 -e MQ_PORT=1419 -e IIB_BROKER_NAME=AOKISC01 -e IIB_EG_NAME=egKafka01 -e LICENSE=accept -p 1419:1419 -p 4450:4434 iibmq:01
+
+
+docker run -d --name=mqtt-mon01 -e HOST=localhost -e PORT=11883 -e USERID=mqtt -e PASSWORD=ThisIsMQTT -e TOPIC_RESOURCESTATS=IBM/IntegrationBus/+/ResourceStatistics/# -p 8083:8083  mqtt:01
+
+
+
+
+docker run -d -e HOST=localhost -e PORT=11883 -e USERID=mickm -e PASSWORD=CartaCat97 -e  TOPIC_RESOURCESTATS=IBM/IntegrationBus/+/ResourceStatistics/# -p 8083:8083 --name=mqtt-mon01 mqtt:01
+
+
+
+docker run -d -e HOST=172.29.181.113 -e QMGR=TSTQPD01 -e CHANNEL=MQ.MONITOR.SVRCONN -e PORT=1414 -e USERID=MQMon01 -e PASSWORD=Passw0rd -e IIBBROKER=TSTIPD01 -p 8081:8081 --name=iib-mon01 iib:01
+
+
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    bc \
+    rpm  \
+    tar  \
+    util-linux \
+    default-jre

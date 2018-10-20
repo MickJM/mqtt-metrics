@@ -1,0 +1,51 @@
+
+// MQ - define queue
+define ql(IIB.FLOWSTATS.ARCH.0001) 
+define ql(IIB.FLOWSTATS.SNAP.0001) 
+
+//topic
+define topic(IIB.FLOWSTATS) topicstr('$SYS/Broker/+/StatisticsAccounting')
+
+//sub - archive
+define sub(IIB.FLOWSTATS.ARCH) topicobj(IIB.FLOWSTATS) topicstr('Archive/#') dest('IIB.FLOWSTATS.ARCH.0001')
+
+//sub - snap
+define sub(IIB.FLOWSTATS.SNAP.0001) topicobj(IIB.FLOWSTATS) topicstr('SnapShot/#') dest('IIB.FLOWSTATS.SNAP.0001')
+
+// sub - both Archive & SnapShot
+define sub(IIB.FLOWSTATS.SNAP.0001) topicobj(IIB.FLOWSTATS) topicstr('+/#') dest('IIB.FLOWSTATS.SNAP.0001')
+
+
+
+// report (-a) archive / (-s) snapshot
+mqsireportflowstats TSTIPD01 -e egKafka01 -j -a
+mqsireportflowstats TSTIPD01 -e egKafka01 -j -s
+
+// disable all message flow stats
+mqsichangeflowstats TSTIPD01 -e egKafka01 -c inactive -j -a
+mqsichangeflowstats TSTIPD01 -e egKafka01 -c inactive -j -s
+
+// enable all message flow stats
+mqsichangeflowstats TSTIPD01 -a -e egKafka01 -j -c active -t basic -o xml –r
+// -r resets the stats
+
+mqsichangeflowstats TSTIPD01 -s -e egKafka01 -j -c active -t basic -o xml
+
+
+-----------------------------------------
+// MQ - define queue
+define ql(IIB.STATS.0001) 
+
+//topic
+define topic(IIB.STATS) topicstr('$SYS/Broker/+/ResourceStatistics/#')
+
+//sub
+define sub(IIB.STATS.0001) topicobj(IIB.STATS) dest('IIB.STATS.0001')
+
+
+// report resource stats
+mqsireportresourcestats TSTIPD01 -e egKafka01
+
+mqsichangeresourcestats TSTIPD01 -e egKafka01 -c active
+
+mqsichangeresourcestats TSTIPD01 -e egKafka01 -c inactive
